@@ -66,10 +66,8 @@ except Exception, e:
 	sys.exit()
 
 chunk = fobj.read(RECV_BUFLEN)
+sent_bytes = 0
 while chunk:
-	print 'reading..sending ' + str(len(chunk)) + ' bytes' 
-	print str(chunk)
-
 	try:
 		s.sendall(chunk)
 	except Exception, e:
@@ -79,8 +77,8 @@ while chunk:
 		s.close()
 		sys.exit()
 
+	sent_bytes += len(chunk)
 	recv_str = s.recv(RECV_BUFLEN)
-	print 'received... ' + str(len(recv_str)) + ' bytes'
 
 	if chunk != recv_str:
 		print 'invalid loopback'
@@ -92,7 +90,7 @@ while chunk:
 
 	chunk = fobj.read(RECV_BUFLEN)
 
-print 'done...'
+print 'done: sent ' + str(sent_bytes) + ' bytes'
 fobj.close()
 s.close()
 	
