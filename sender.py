@@ -8,6 +8,7 @@ SERVER = 'localhost'
 PORT = 8888
 RECV_BUFLEN = 4096
 SHARED_KEY = 'cigital/ds/12@33!'
+DELIMITER = '@@##$$^^'
 
 def print_error(name, msg):
 	print name + ' failed.'
@@ -45,11 +46,17 @@ def crpyt(fprop):
 	fheader = pickle.dumps(fprop)
 	fdigest = hmac.new(SHARED_KEY, fheader, sha1).hexdigest()
  
-	fsendheader = fdigest + ' ' + fheader
+	fsendheader = fdigest + DELIMITER + fheader
 	return fsendheader
 
 def decrypt(data):
-	recd_fdigest, recd_fheader = data.split(' ')
+	try:
+		recd_fdigest, recd_fheader = data.split(DELIMITER)
+	except Exception,e:
+		print 'decrpyt: split failure: DELIMITER = '+ DELIMITER
+		print 'split = '+ str(data.split(DELIMITER))
+		return None
+
 	new_fdigest = hmac.new(SHARED_KEY, recd_fheader, sha1).hexdigest()
 
 	# python >= 2.7.7 has compare_digest
@@ -106,6 +113,9 @@ except Exception, e:
 fprop = gen_prop(fname)
 print 'id : ' + str(fprop[0])
 print 'size : ' + str(fprop[1])
+
+if fprop[1] == 0:
+	print '**WARNING** : empty file, why send ??'
 
 #send file mehta data
 fsendheader = crpyt(fprop)	

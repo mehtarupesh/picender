@@ -10,6 +10,7 @@ PORT = 8888
 BACKLOG = 10
 RECV_BUFLEN = 4096
 SHARED_KEY = 'cigital/ds/12@33!'
+DELIMITER = '@@##$$^^'
 
 def print_error(name, msg):
 	print name + ' failed.'
@@ -20,11 +21,18 @@ def crpyt(fprop):
 	fheader = pickle.dumps(fprop)
 	fdigest = hmac.new(SHARED_KEY, fheader, sha1).hexdigest()
  
-	fsendheader = fdigest + ' ' + fheader
+	fsendheader = fdigest + DELIMITER + fheader
 	return fsendheader
 
 def decrypt(data):
-	recd_fdigest, recd_fheader = data.split(' ')
+
+	try:
+		recd_fdigest, recd_fheader = data.split(DELIMITER)
+	except Exception,e:
+		print 'decrpyt: split failure: DELIMITER = '+DELIMITER
+		print 'split = '+ str(data.split(DELIMITER))
+		return None
+
 	new_fdigest = hmac.new(SHARED_KEY, recd_fheader, sha1).hexdigest()
 
 	# python >= 2.7.7 has compare_digest
