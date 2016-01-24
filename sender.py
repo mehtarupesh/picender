@@ -1,9 +1,13 @@
 import socket
-import sys, getopt
+import pickle
+import sys, getopt, os
+import hmac
+from hashlib import sha1
 
 SERVER = 'localhost'
 PORT = 8888
 RECV_BUFLEN = 4096
+SHARED_KEY = 'cigital/ds/12@33!'
 
 def print_error(name, msg):
 	print name + ' failed.'
@@ -28,6 +32,39 @@ def parse_args(argv):
 			in_file = arg
 
 	return in_file
+
+# return tuple of id, size
+def gen_prop(fname):
+	fid   = os.path.abspath(fname)
+	finfo = os.stat(fname)
+	fsize = finfo.st_size
+	fprop = (fid, fsize)
+	return fprop
+
+def crpyt(fprop):
+	fheader = pickle.dumps(fprop)
+	fdigest = hmac.new(SHARED_KEY, fheader, sha1).hexdigest()
+ 
+	fsendheader = fdigest + ' ' + fheader
+	return fsendheader
+
+def decrypt(data):
+	recd_fdigest, recd_fheader = data.split(' ')
+	new_fdigest = hmac.new(SHARED_KEY, recd_fheader, sha1).hexdigest()
+
+	# python >= 2.7.7 has compare_digest
+	#if hmac.compare_digest(recd_fdigeststr, new_fdigest) == false:
+	if recd_fdigest != new_fdigest:
+		print 'authentication error:'
+		print 'recvd digest = ' + str(recd_fdigest)
+		print 'generated digest = ' + str(new_fdigest)
+		fobj.close()
+	 	s.close()
+	 	sys.exit()
+
+	fprop_recd = pickle.loads(recd_fheader)
+	return fprop_recd
+
 
 try:
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -65,6 +102,23 @@ except Exception, e:
 	s.close()
 	sys.exit()
 
+
+fprop = gen_prop(fname)
+print 'id : ' + str(fprop[0])
+print 'size : ' + str(fprop[1])
+
+#send file mehta data
+fsendheader = crpyt(fprop)	
+try:
+	s.sendall(fsendheader)
+except Exception, e:
+	print 'sending failed...'
+	print 'Exception:' + str(e)
+	fobj.close()
+	s.close()
+	sys.exit()
+
+#send file contents
 chunk = fobj.read(RECV_BUFLEN)
 sent_bytes = 0
 while chunk:
@@ -90,7 +144,10 @@ while chunk:
 
 	chunk = fobj.read(RECV_BUFLEN)
 
-print 'done: sent ' + str(sent_bytes) + ' bytes'
+if sent_bytes != fprop[1]:
+	print '***Error : sent_bytes != file_size'
+else:
+	print 'done...'
 fobj.close()
 s.close()
 	
