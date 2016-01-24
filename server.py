@@ -66,30 +66,45 @@ def client_handler(conn, host_name, port):
 	print 'fsize = ' + str(fheader[1])
 
 	recd_bytes = 0
+	recd_fname = str(fheader[0])+'.recd'
+
+	try:
+		fobj = open(recd_fname,'wb')
+	except Exception, e:
+		print 'open file failed'
+		print 'Exception : ' + str(e)
+		conn.close()
+		return
+
 	# get file contents
 	while True:
 		try:
 			data = conn.recv(RECV_BUFLEN)
 		except socket.error as msg:
 			print_error("recv", msg)
+			fobj.close()
+			os.remove(recd_fname)
 			conn.close()
 			return
-
-		recd_bytes += len(data)
-		reply = data
 
 		if not data:
 			break
 
+		recd_bytes += len(data)
+		reply = data
+		fobj.write(data)
+
 		#echo server
 		conn.sendall(reply)
 
+	fobj.close()
 	conn.close()
 
 	if recd_bytes != fheader[1]:
 		print 'Error in num of bytes received: '
 		print 'Expected : ' + str(fheader[1]) + ' bytes'
 		print 'Received : ' + str(recd_bytes) + ' bytes'
+		os.remove(recd_fname)
 	else:		
 		print 'Successfully recd: '
 
