@@ -2,16 +2,27 @@ import socket
 import sys
 from metadata import *
 from thread import *
+import ntpath
 
 HOST = ''
 PORT = 8888
 BACKLOG = 10
 RECV_BUFLEN = 4096
+STORAGE_DIR_PATH = os.getcwd()+"/storage"
 
 def print_error(name, msg):
 	print name + ' failed.'
 	print 'error code: ' + str(msg[0])
 	print  'description: ' + str(msg[1])
+
+
+def gen_fname(fid):
+	head, tail = ntpath.split(fid)
+
+	if not os.path.exists(STORAGE_DIR_PATH):
+		os.makedirs(STORAGE_DIR_PATH)
+
+	return STORAGE_DIR_PATH+'/'+tail+".recd"
 
 def client_handler(conn, host_name, port):
 
@@ -33,8 +44,7 @@ def client_handler(conn, host_name, port):
 	print 'fid   = ' + str(fheader[0])
 	print 'fsize = ' + str(fheader[1])
 
-	recd_bytes = 0
-	recd_fname = str(fheader[0])+'.recd'
+	recd_fname = gen_fname(str(fheader[0]))
 
 	try:
 		fobj = open(recd_fname,'wb')
@@ -44,6 +54,7 @@ def client_handler(conn, host_name, port):
 		conn.close()
 		return
 
+	recd_bytes = 0
 	# get file contents
 	while True:
 		try:
