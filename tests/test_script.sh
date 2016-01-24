@@ -11,7 +11,7 @@ CLIENT=../sender.py
 
 for i in "${flist[@]}"
 do
-    echo Sending.. 
+    echo Sending..
     echo "$i"
     python $CLIENT -f $i
 done
