@@ -7,16 +7,28 @@ import json
 SHARED_KEY = 'cigital/ds/12@33!'
 DELIMITER = '@@##$$^^'
 HEADER_SIZE = 512
+DIR_STRING = 'DIR'
 ID_STRING = 'ID'
 LEN_STRING = 'LENGTH'
 
-# return tuple of id, size
+# return tuple of dir, id, size
 def gen_prop(fname):
 	fid   = os.path.abspath(fname)
+	fdir  = os.path.dirname(fid)
+	fdir  = str(os.path.basename(fdir))
 	finfo = os.stat(fname)
 	fsize = finfo.st_size
-	fprop = (fid, fsize)
+	fprop = (fdir, fid, fsize)
 	return fprop
+
+def get_fdir(fprop):
+	return fprop[0]
+
+def get_fid(fprop):
+	return fprop[1]
+
+def get_fsize(fprop):
+	return fprop[2]
 
 #formatting functions
 def gen_header_string(fprop):
@@ -25,8 +37,9 @@ def gen_header_string(fprop):
 
 	#Method 2: Json
 	flist = {}
-	flist[ID_STRING] = str(fprop[0])
-	flist[LEN_STRING] = str(fprop[1])
+	flist[DIR_STRING] = str(get_fdir(fprop))
+	flist[ID_STRING] = str(get_fid(fprop))
+	flist[LEN_STRING] = str(get_fsize(fprop))
 	return json.dumps(flist)
 
 def gen_header_obj(hstr):
@@ -35,7 +48,8 @@ def gen_header_obj(hstr):
 
 	#Method 2: Json
 	flist = json.loads(hstr)
-	fprop = (flist[ID_STRING], int(flist[LEN_STRING]))
+	# important that length is 'int'
+	fprop = (flist[DIR_STRING], flist[ID_STRING], int(flist[LEN_STRING]))
 
 	return fprop
 

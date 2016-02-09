@@ -68,8 +68,9 @@ except Exception, e:
 
 
 fprop = gen_prop(fname)
-print 'id : ' + str(fprop[0])
-print 'size : ' + str(fprop[1])
+print 'fdir   = ' + get_fdir(fprop)
+print 'fid   = ' + get_fid(fprop)
+print 'fsize = ' + str(get_fsize(fprop))
 
 #send file mehta data
 fsendheader = crpyt(fprop)	
@@ -118,7 +119,7 @@ while chunk:
 
 	chunk = fobj.read(RECV_BUFLEN)
 
-if sent_bytes != fprop[1]:
+if sent_bytes != get_fsize(fprop):
 	print '****** Error : sent_bytes != file_size'
 else:
 	print 'DONE...'

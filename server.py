@@ -16,13 +16,15 @@ def print_error(name, msg):
 	print  'description: ' + str(msg[1])
 
 
-def gen_fname(fid):
+def gen_fname(fdir, fid):
 	head, tail = ntpath.split(fid)
 
-	if not os.path.exists(STORAGE_DIR_PATH):
-		os.makedirs(STORAGE_DIR_PATH)
+	fdir_abs_path = STORAGE_DIR_PATH + '/' + fdir
 
-	return STORAGE_DIR_PATH+'/'+tail+".recd"
+	if not os.path.exists(fdir_abs_path):
+		os.makedirs(fdir_abs_path)
+
+	return fdir_abs_path+'/'+tail
 
 def client_handler(conn, host_name, port):
 
@@ -41,10 +43,11 @@ def client_handler(conn, host_name, port):
 		conn.close()
 		return
 
-	print 'fid   = ' + str(fheader[0])
-	print 'fsize = ' + str(fheader[1])
+	print 'fdir   = ' + get_fdir(fheader)
+	print 'fid   = ' + get_fid(fheader)
+	print 'fsize = ' + str(get_fsize(fheader))
 
-	recd_fname = gen_fname(str(fheader[0]))
+	recd_fname = gen_fname(get_fdir(fheader), get_fid(fheader))
 
 	try:
 		fobj = open(recd_fname,'wb')
@@ -79,9 +82,9 @@ def client_handler(conn, host_name, port):
 	fobj.close()
 	conn.close()
 
-	if recd_bytes != fheader[1]:
+	if recd_bytes != get_fsize(fheader):
 		print 'Error in num of bytes received: '
-		print 'Expected : ' + str(fheader[1]) + ' bytes'
+		print 'Expected : ' + str(get_fsize(fheader)) + ' bytes'
 		print 'Received : ' + str(recd_bytes) + ' bytes'
 		os.remove(recd_fname)
 	else:		
