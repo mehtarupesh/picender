@@ -74,7 +74,7 @@ def client_handler(conn, host_name, port):
 		fobj.write(data)
 
 		#echo server
-		conn.sendall(reply)
+		#conn.sendall(reply)
 
 	fobj.close()
 	conn.close()

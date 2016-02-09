@@ -2,10 +2,13 @@ import hmac
 from hashlib import sha1
 import os
 import pickle
+import json
 
 SHARED_KEY = 'cigital/ds/12@33!'
 DELIMITER = '@@##$$^^'
 HEADER_SIZE = 512
+ID_STRING = 'ID'
+LEN_STRING = 'LENGTH'
 
 # return tuple of id, size
 def gen_prop(fname):
@@ -15,8 +18,29 @@ def gen_prop(fname):
 	fprop = (fid, fsize)
 	return fprop
 
+#formatting functions
+def gen_header_string(fprop):
+	#Method 1: pickle
+	#return pickle.dumps(fprop)
+
+	#Method 2: Json
+	flist = {}
+	flist[ID_STRING] = str(fprop[0])
+	flist[LEN_STRING] = str(fprop[1])
+	return json.dumps(flist)
+
+def gen_header_obj(hstr):
+	#Method 1: pickle
+	#return pickle.loads(hstr)
+
+	#Method 2: Json
+	flist = json.loads(hstr)
+	fprop = (flist[ID_STRING], int(flist[LEN_STRING]))
+
+	return fprop
+
 def crpyt(fprop):
-	fheader = pickle.dumps(fprop)
+	fheader = gen_header_string(fprop)
 	fdigest = hmac.new(SHARED_KEY, fheader, sha1).hexdigest()
  
 	fsendheader = DELIMITER + str(fdigest) + DELIMITER + str(fheader)
@@ -57,5 +81,5 @@ def decrypt(data):
 		print '****** generated digest = ' + str(new_fdigest)
 		return None
 
-	fprop_recd = pickle.loads(recd_fheader)
+	fprop_recd = gen_header_obj(recd_fheader)
 	return fprop_recd

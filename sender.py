@@ -105,15 +105,16 @@ while chunk:
 		sys.exit()
 
 	sent_bytes += len(chunk)
-	recv_str = s.recv(RECV_BUFLEN)
 
-	if chunk != recv_str:
-		print '****** invalid loopback'
-		print '****** sent : ' + str(chunk)
-		print '****** recvd : ' + str(recv_str)
-		fobj.close()
-		s.close()
-		sys.exit()
+	# recv echo from server
+	# recv_str = s.recv(RECV_BUFLEN)
+	# if chunk != recv_str:
+	# 	print '****** invalid loopback'
+	# 	print '****** sent : ' + str(chunk)
+	# 	print '****** recvd : ' + str(recv_str)
+	# 	fobj.close()
+	# 	s.close()
+	# 	sys.exit()
 
 	chunk = fobj.read(RECV_BUFLEN)
 
