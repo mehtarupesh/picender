@@ -1,5 +1,6 @@
 import socket
 import sys
+import time
 from metadata import *
 from thread import *
 import ntpath
@@ -8,6 +9,7 @@ HOST = ''
 PORT = 8888
 BACKLOG = 10
 RECV_BUFLEN = 4096
+DATA_BUFLEN = (16 * 4096)
 STORAGE_DIR_PATH = os.getcwd()+"/storage"
 
 def print_error(name, msg):
@@ -58,10 +60,11 @@ def client_handler(conn, host_name, port):
 		return
 
 	recd_bytes = 0
+	start_ts = time.time()
 	# get file contents
 	while True:
 		try:
-			data = conn.recv(RECV_BUFLEN)
+			data = conn.recv(DATA_BUFLEN)
 		except socket.error as msg:
 			print_error("recv", msg)
 			fobj.close()
@@ -79,6 +82,7 @@ def client_handler(conn, host_name, port):
 		#echo server
 		#conn.sendall(reply)
 
+	end_ts = time.time()
 	fobj.close()
 	conn.close()
 
@@ -88,9 +92,10 @@ def client_handler(conn, host_name, port):
 		print 'Received : ' + str(recd_bytes) + ' bytes'
 		os.remove(recd_fname)
 	else:		
-		print 'Successfully recd: '
+		print 'Successfully recd: ' + str(recd_bytes) + ' bytes : [' + str(recd_bytes/(end_ts - start_ts)) + '] bytes per second'
 
-	print 'From client ' + str(host_name) + ':' + str(port) + ' done'
+	print time.strftime("%c")
+	print '----------------------------------------------------------'
 
 try:
 	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
